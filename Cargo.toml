@@ -1,0 +1,12 @@
+[package]
+name = "trafix"
+version = "0.1.0"
+edition = "2021"
+authors = ["Nadir Fejzić <nadirfejzo@gmail.com>", "Kasim Fejzić <kasimfejzo@gmail.com>"]
+description = "Implementation of FIX - Financial Information eXchange protocol."
+repository = "https://github.com/oxifix/trafix"
+homepage = "https://github.com/oxifix/trafix"
+readme = "README.md"
+license = "Apache-2.0"
+
+[dependencies]
