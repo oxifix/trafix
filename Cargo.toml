@@ -1,12 +1,17 @@
-[package]
-name = "trafix"
+[workspace]
+members = [
+    "trafix", "trafix-codec",
+    "trafix-engine",
+]
+resolver = "2"
+
+[workspace.package]
 version = "0.1.0"
-edition = "2021"
-authors = ["Nadir Fejzić <nadirfejzo@gmail.com>", "Kasim Fejzić <kasimfejzo@gmail.com>"]
-description = "Implementation of FIX - Financial Information eXchange protocol."
+edition = "2024"
+authors = ["Kasim Fejzić <kasimfejzo@gmail.com>", "Nadir Fejzić <nadirfejzo@gmail.com>"]
+description = "FIX (Financial Information eXchange) codec and engine libraries written in Rust."
 repository = "https://github.com/oxifix/trafix"
 homepage = "https://github.com/oxifix/trafix"
-readme = "README.md"
 license = "Apache-2.0"
 
-[dependencies]
+[workspace.dependencies]

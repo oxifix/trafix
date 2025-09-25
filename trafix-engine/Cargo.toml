@@ -1,0 +1,10 @@
+[package]
+name = "trafix-engine"
+version = "0.1.0"
+description = "Full-featured FIX engine implementation with session management, transports, and persistence built on top of trafix-codec."
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[dependencies]

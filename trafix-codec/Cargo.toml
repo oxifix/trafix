@@ -1,0 +1,10 @@
+[package]
+name = "trafix-codec"
+version = "0.1.0"
+description = "Low-level library for high-performance parsing, encoding, and validation of FIX messages."
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[dependencies]
