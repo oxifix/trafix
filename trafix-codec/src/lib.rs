@@ -5,3 +5,4 @@
 //! encoding, and validation of FIX messages.
 
 pub mod encoder;
+pub mod message;
