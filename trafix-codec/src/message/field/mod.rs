@@ -1,8 +1,8 @@
 //! Comment
 
-use crate::message::field::value::aliases::{MsgSeqNum, SenderCompID, SendingTime, TargetCompID};
-
 pub mod value;
+
+use crate::message::field::value::aliases::{MsgSeqNum, SenderCompID, SendingTime, TargetCompID};
 
 /// Comment
 macro_rules! fields_macro {
