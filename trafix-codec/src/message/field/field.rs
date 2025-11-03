@@ -1,28 +1,12 @@
 //! Comment
 
-use crate::message::field::value::{
-    aliases::{BodyLength, Checksum, MsgSeqNum, SenderCompID, TargetCompID},
-    begin_string::BeginString,
-    msg_type::MsgType,
-};
+use crate::message::field::value::aliases::{MsgSeqNum, SenderCompID, TargetCompID};
 
 /// Comment
 #[derive(Clone, Debug, PartialEq)]
 pub enum Field {
     /// Comment
-    BeginString(BeginString),
-
-    /// Comment
-    BodyLength(BodyLength),
-
-    /// Comment
-    Checksum(Checksum),
-
-    /// Comment
     MsgSeqNum(MsgSeqNum),
-
-    /// Comment
-    MsgType(MsgType),
 
     /// Comment
     SenderCompID(SenderCompID),
@@ -40,15 +24,33 @@ pub enum Field {
 impl From<Field> for Vec<u8> {
     fn from(val: Field) -> Self {
         match val {
-            Field::BeginString(begin_string) => todo!(),
-            Field::BodyLength(body_length) => todo!(),
-            Field::Checksum(checksum) => todo!(),
-            Field::MsgSeqNum(msg_seq_num) => todo!(),
-            Field::MsgType(msg_type) => todo!(),
-            Field::SenderCompID(sender_comp_id) => todo!(),
-            Field::SendingTime => todo!(),
-            Field::TargetCompID(target_comp_id) => todo!(),
-            Field::Custom { tag, value } => todo!(),
+            Field::MsgSeqNum(msg_seq_num) => {
+                let mut vec = b"34=".to_vec();
+                vec.extend_from_slice(msg_seq_num.to_string().as_bytes());
+                vec
+            }
+
+            Field::SenderCompID(sender_comp_id) => {
+                let mut vec = b"49=".to_vec();
+                vec.extend(&sender_comp_id);
+                vec
+            }
+
+            Field::SendingTime => b"52=".to_vec(),
+
+            Field::TargetCompID(target_comp_id) => {
+                let mut vec = b"56=".to_vec();
+                vec.extend(&target_comp_id);
+                vec
+            }
+
+            Field::Custom { tag, value } => {
+                let mut vec = Vec::from(tag.to_string().as_bytes());
+                vec.extend(b"=");
+                vec.extend(value);
+
+                vec
+            }
         }
     }
 }

@@ -1,10 +1,10 @@
 //! Comment
 
 /// Comment
-pub type BodyLength = usize;
+pub(crate) type BodyLength = usize;
 
 /// Comment
-pub type Checksum = u8;
+pub(crate) type Checksum = u8;
 
 /// Comment
 pub type MsgSeqNum = u64;
