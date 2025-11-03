@@ -71,14 +71,14 @@ macro_rules! fields_macro {
 
 fields_macro! {
     /// Comment
-    MsgSeqNum(MsgSeqNum) = 44 => msg_seq_num format!("{msg_seq_num}").into_bytes(),
+    MsgSeqNum(MsgSeqNum) = 34 => msg_seq_num format!("{msg_seq_num}").into_bytes(),
 
     /// Comment
-    SenderCompID(SenderCompID) = 44 => sender_comp_id sender_comp_id.clone(),
+    SenderCompID(SenderCompID) = 49 => sender_comp_id sender_comp_id.clone(),
 
     /// Comment
-    SendingTime(SendingTime) = 44 => sending_time sending_time.clone(),
+    SendingTime(SendingTime) = 52 => sending_time sending_time.clone(),
 
     /// Comment
-    TargetCompID(TargetCompID) = 44 => target_comp_id target_comp_id.clone()
+    TargetCompID(TargetCompID) = 56 => target_comp_id target_comp_id.clone()
 }
