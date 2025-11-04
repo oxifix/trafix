@@ -10,9 +10,11 @@ use crate::message::field::{
 /// Comment
 pub struct Header {
     /// Comment
+    #[allow(dead_code)]
     begin_string: BeginString,
 
     /// Comment
+    #[allow(dead_code)]
     msg_type: MsgType,
 
     /// Comment
