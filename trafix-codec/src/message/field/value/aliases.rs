@@ -1,8 +1,7 @@
 //! Definitions of type aliases used for common FIX field values.
 //!
 //! These aliases provide clearer semantic meaning when working with
-//! strongly typed [`Field`](crate::message::field::Field) variants,
-//! while remaining lightweight wrappers around primitive types.
+//! strongly typed [`Field`](crate::message::field::Field) variants.
 
 /// Represents the `MsgSeqNum` (`34`).
 ///
@@ -20,6 +19,8 @@ pub type SenderCompID = Vec<u8>;
 /// Represents the `SendingTime` (`52`).
 ///
 /// Timestamp indicating when the message was sent.
+// TODO(kfejzic): Replace with a more specific time type, adhering to the
+// FIXs SendingTime ruling: YYYYMMDD-HH:MM:SS[.sss]
 pub type SendingTime = Vec<u8>;
 
 /// Represents the `TargetCompID` (`56`).
