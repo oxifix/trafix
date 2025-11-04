@@ -41,6 +41,7 @@ impl Message {
     /// Creates a new [`MessageBuilder`] initialized with the required
     /// [`BeginString`] and [`MsgType`] header fields.
     ///
+    /// Example usage:
     /// ```
     /// use trafix_codec::message::{
     ///     Message,
@@ -109,6 +110,7 @@ impl<const IS_INIT: bool> MessageBuilder<IS_INIT> {
 impl MessageBuilder<true> {
     /// Finalizes and returns the fully constructed [`Message`].
     ///
+    /// Example usage:
     /// ```
     /// use trafix_codec::message::{
     ///     Message,

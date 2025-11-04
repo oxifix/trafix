@@ -1,13 +1,29 @@
-//! Comment
+//! Implementation of the field module.
 
 pub mod value;
 
 use crate::message::field::value::aliases::{MsgSeqNum, SenderCompID, SendingTime, TargetCompID};
 
-/// Comment
+/// Macro that generates the [`Field`] enum and its core utility methods.
+///
+/// Each macro entry defines:
+/// - the enum variant name,
+/// - the Rust type for its value,
+/// - the FIX tag number,
+/// - a match binding + expression returning the serialized value.
+///
+/// The macro expands into:
+/// - the [`Field`] enum,
+/// - a [`Field::tag`] method returning the tag number,
+/// - a [`Field::value`] method returning the encoded byte value,
+/// - and a [`Field::encode`] method producing the `"tag=value"` byte sequence.
 macro_rules! fields_macro {
     ($($(#[$($attrs:tt)*])* $variant:ident($type:ty) = $tag:literal => $match:ident $expr:expr),+) => {
-        /// Comment
+        /// Represents a single FIX field.
+        ///
+        /// Each variant corresponds to a strongly-typed FIX tag, such as
+        /// `MsgSeqNum(34)` or `SenderCompID(49)`. Fields not covered by
+        /// predefined variants can be represented using [`Field::Custom`].
         #[derive(Debug, Clone, PartialEq)]
         pub enum Field {
             $(
@@ -15,12 +31,23 @@ macro_rules! fields_macro {
             $variant($type)
             ),+,
 
-            /// Comment
+            /// Represents an arbitrary or user-defined FIX field not covered
+            /// by the predefined variants.
+            ///
+            /// Useful for extension tags, firm-specific fields, or when
+            /// working with non-standard message structures.
             Custom { tag: u16, value: Vec<u8> }
         }
 
         impl Field {
-            /// Comment
+            /// Returns the numeric FIX tag associated with this field.
+            ///
+            /// Example usage:
+            /// ```
+            /// use trafix_codec::message::field::{Field, value::aliases::MsgSeqNum};
+            /// let f = Field::MsgSeqNum(1);
+            /// assert_eq!(f.tag(), 34);
+            /// ```
             pub fn tag(&self) -> u16 {
                 match self {
                     $(
@@ -31,7 +58,11 @@ macro_rules! fields_macro {
                 }
             }
 
-            /// Comment
+            /// Returns the serialized value of the field as raw bytes.
+            ///
+            /// For predefined fields, this returns their encoded textual
+            /// representation (e.g. integer → ASCII). For custom fields, the
+            /// original byte vector is cloned.
             pub fn value(&self) -> Vec<u8> {
                 match self {
                     $(
@@ -42,7 +73,17 @@ macro_rules! fields_macro {
                 }
             }
 
-            /// Comment
+            /// Serializes the field into its `"tag=value"` representation.
+            ///
+            /// This does **not** append the SOH delimiter; it only produces
+            /// the byte content for a single field. The encoder is
+            /// responsible for joining fields with SOH (`0x01`).
+            ///
+            /// ```
+            /// use trafix_codec::message::field::{Field, value::aliases::MsgSeqNum};
+            /// let f = Field::MsgSeqNum(4);
+            /// assert_eq!(f.encode(), b"34=4".to_vec());
+            /// ```
             pub fn encode(&self) -> Vec<u8> {
                 match self {
                     $(
@@ -70,16 +111,24 @@ macro_rules! fields_macro {
 }
 
 fields_macro! {
-    /// Comment
+    /// Message sequence number (`34`).
+    ///
+    /// Used to identify message ordering within a FIX session.
     MsgSeqNum(MsgSeqNum) = 34 => msg_seq_num format!("{msg_seq_num}").into_bytes(),
 
-    /// Comment
+    /// Sender company or system identifier (`49`).
+    ///
+    /// Identifies the sender of the message in a FIX session.
     SenderCompID(SenderCompID) = 49 => sender_comp_id sender_comp_id.clone(),
 
-    /// Comment
+    /// Message sending time (`52`).
+    ///
+    /// Timestamp representing when the message was sent.
     SendingTime(SendingTime) = 52 => sending_time sending_time.clone(),
 
-    /// Comment
+    /// Target company or system identifier (`56`).
+    ///
+    /// Identifies the intended recipient of the message in a FIX session.
     TargetCompID(TargetCompID) = 56 => target_comp_id target_comp_id.clone()
 }
 
