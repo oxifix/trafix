@@ -1,15 +1,11 @@
-//! Defines the [`BeginString`] value type, representing the FIX protocol version
-//! used in the message header.
-//!
-//! The `BeginString` corresponds to FIX tag **8**, which identifies the
-//! protocol version of the message. It is always the **first field** in
-//! every FIX message.
+//! Defines the [`BeginString`] enumeration, representing the FIX **8 `BeginString`**
+//! field value.
 
 // TODO: Limit visibility to crate once standards are introduced.
 
-/// Represents the FIX protocol version specified in tag **8 `BeginString`**.
+/// Represents the FIX protocol version (`8`) field value.
 ///
-/// This field determines the message format and version-specific rules
+/// This field value determines the message format and version-specific rules
 /// that apply to subsequent tags in the message.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum BeginString {

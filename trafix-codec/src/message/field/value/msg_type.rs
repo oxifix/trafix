@@ -1,31 +1,44 @@
-//! Comment
+//! Defines the [`MsgType`] enumeration representing the FIX **35 `MsgType`** field value.
 
-/// Comment
+/// Represents the FIX message type (`35`) field value.
+///
+/// Each variant corresponds to a well-known administrative message
+/// used in FIX session-level communication.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum MsgType {
-    /// Comment
+    /// `Logon` message (`35=A`) — establishes a FIX session.
     Logon,
 
-    /// Comment
+    /// `Heartbeat` message (`35=0`) — confirms the session is still active.
     Heartbeat,
 
-    /// Comment
+    /// `TestRequest` message (`35=1`) — forces a heartbeat from the counterparty.
     TestRequest,
 
-    /// Comment
+    /// `ResendRequest` message (`35=2`) — requests retransmission of missed messages.
     ResendRequest,
 
-    /// Comment
+    /// `Reject` message (`35=3`) — indicates a problem with a received message.
     Reject,
 
-    /// Comment
+    /// `SequenceReset` message (`35=4`) — resets expected sequence numbers or fills gaps.
     SequenceReset,
 
-    /// Comment
+    /// `Logout` message (`35=5`) — gracefully terminates a FIX session.
     Logout,
 }
 
 impl From<MsgType> for Vec<u8> {
+    /// Converts a [`MsgType`] variant into its FIX wire representation.
+    ///
+    /// Returns the single-byte ASCII code that identifies the message type,
+    /// suitable for direct use in encoding.
+    ///
+    /// ```
+    /// use trafix_codec::message::field::value::msg_type::MsgType;
+    /// let bytes: Vec<u8> = MsgType::Logon.into();
+    /// assert_eq!(bytes, b"A");
+    /// ```
     fn from(val: MsgType) -> Self {
         match val {
             MsgType::Logon => b"A".to_vec(),
