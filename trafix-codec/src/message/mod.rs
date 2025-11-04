@@ -22,7 +22,7 @@ pub struct Header {
     msg_type: MsgType,
 
     /// Optional additional header fields.
-    fields: Option<Vec<Field>>,
+    fields: Vec<Field>,
 }
 
 /// Represents a complete owned, structured FIX message composed of a header and body.
@@ -58,7 +58,7 @@ impl Message {
         let header = Header {
             begin_string,
             msg_type,
-            fields: None,
+            fields: Vec::new(),
         };
 
         MessageBuilder {
@@ -84,12 +84,7 @@ impl<const IS_INIT: bool> MessageBuilder<IS_INIT> {
     /// Adds a field to the message header.
     #[must_use]
     pub fn with_header(mut self, field: Field) -> Self {
-        if let Some(fields) = &mut self.inner.header.fields {
-            fields.push(field);
-        } else {
-            self.inner.header.fields = Some(Vec::new());
-            return self.with_header(field);
-        }
+        self.inner.header.fields.push(field);
 
         self
     }
@@ -182,8 +177,8 @@ mod test {
         assert_eq!(msg.header.msg_type, MsgType::Logout);
 
         // custom header
-        assert_eq!(msg.header.fields.clone().unwrap().len(), 1);
-        assert_eq!(msg.header.fields.unwrap()[0], custom_header_field);
+        assert_eq!(msg.header.fields.clone().len(), 1);
+        assert_eq!(msg.header.fields[0], custom_header_field);
 
         // body
         assert_eq!(msg.body.len(), 2);
