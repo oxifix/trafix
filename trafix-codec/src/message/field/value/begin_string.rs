@@ -1,5 +1,6 @@
 //! Comment
 
+// TODO: Limit visibility to crate once standards are introduced.
 /// Comment
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum BeginString {
