@@ -74,7 +74,7 @@ impl Message {
 ///
 /// The builder supports chaining calls to add header or body fields.
 /// Type-state (`IS_INIT`) tracks whether at least one body field was added,
-/// allowing `build()` to only be available after initialization.
+/// allowing [`MessageBuilder::build()`] to only be available after initialization.
 pub struct MessageBuilder<const IS_INIT: bool> {
     /// The message being constructed.
     inner: Message,
