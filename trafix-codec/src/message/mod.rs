@@ -1,4 +1,4 @@
-//! Comment
+//! Implementation of the message module.
 
 pub mod field;
 
@@ -7,31 +7,51 @@ use crate::message::field::{
     value::{begin_string::BeginString, msg_type::MsgType},
 };
 
-/// Comment
+/// Represents the header section of a FIX message.
+///
+/// The header always contains the protocol [`BeginString`] (tag 8)
+/// and the message type [`MsgType`] (tag 35), and may include
+/// additional session or routing fields.
 pub struct Header {
-    /// Comment
+    /// The `BeginString` identifying the FIX protocol version.
     #[allow(dead_code)]
     begin_string: BeginString,
 
-    /// Comment
+    /// The `MsgType` indicating the business purpose of the message (message type).
     #[allow(dead_code)]
     msg_type: MsgType,
 
-    /// Comment
+    /// Optional additional header fields.
     fields: Option<Vec<Field>>,
 }
 
-/// Comment
+/// Represents a complete owned, structured FIX message composed of a header and body.
+///
+/// The header holds protocol and session metadata, while the body
+/// carries message-specific fields defined by the message type.
 pub struct Message {
-    /// Comment
+    /// The message header containing version, type, and optional routing fields.
     header: Header,
 
-    /// Comment
+    /// The list of fields forming the message body (business content).
     body: Vec<Field>,
 }
 
 impl Message {
-    /// Comment
+    /// Creates a new [`MessageBuilder`] initialized with the required
+    /// [`BeginString`] and [`MsgType`] header fields.
+    ///
+    /// ```
+    /// use trafix_codec::message::{
+    ///     Message,
+    ///     field::{
+    ///         Field,
+    ///         value::{begin_string::BeginString, msg_type::MsgType},
+    ///     },
+    /// };
+    ///
+    /// let builder = Message::builder(BeginString::FIX44, MsgType::Logon);
+    /// ```
     #[must_use]
     pub fn builder(begin_string: BeginString, msg_type: MsgType) -> MessageBuilder<false> {
         let header = Header {
@@ -49,14 +69,18 @@ impl Message {
     }
 }
 
-/// Comment
+/// Generic builder for constructing [`Message`] instances.
+///
+/// The builder supports chaining calls to add header or body fields.
+/// Type-state (`IS_INIT`) tracks whether at least one body field was added,
+/// allowing `build()` to only be available after initialization.
 pub struct MessageBuilder<const IS_INIT: bool> {
-    /// Comment
+    /// The message being constructed.
     inner: Message,
 }
 
 impl<const IS_INIT: bool> MessageBuilder<IS_INIT> {
-    /// Comment
+    /// Adds a field to the message header.
     #[must_use]
     pub fn with_header(mut self, field: Field) -> Self {
         if let Some(fields) = &mut self.inner.header.fields {
@@ -69,7 +93,11 @@ impl<const IS_INIT: bool> MessageBuilder<IS_INIT> {
         self
     }
 
-    /// Comment
+    /// Adds a field to the message body.
+    ///
+    /// Each call appends a new [`Field`] in order of insertion.
+    /// Once at least one field has been added, the builder transitions
+    /// to an initialized state, enabling [`build`](Self::build).
     #[must_use]
     pub fn with_field(mut self, field: Field) -> MessageBuilder<true> {
         self.inner.body.push(field);
@@ -79,7 +107,21 @@ impl<const IS_INIT: bool> MessageBuilder<IS_INIT> {
 }
 
 impl MessageBuilder<true> {
-    /// Comment
+    /// Finalizes and returns the fully constructed [`Message`].
+    ///
+    /// ```
+    /// use trafix_codec::message::{
+    ///     Message,
+    ///     field::{
+    ///         Field,
+    ///         value::{begin_string::BeginString, msg_type::MsgType},
+    ///     },
+    /// };
+    ///
+    /// let msg = Message::builder(BeginString::FIX44, MsgType::Logout)
+    ///     .with_field(Field::Custom { tag: 58, value: b"Bye".to_vec() })
+    ///     .build();
+    /// ```
     #[must_use]
     pub fn build(self) -> Message {
         self.inner
