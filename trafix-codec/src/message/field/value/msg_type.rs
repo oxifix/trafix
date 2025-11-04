@@ -6,25 +6,25 @@
 /// used in FIX session-level communication.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum MsgType {
-    /// `Logon` message (`35=A`) — establishes a FIX session.
+    /// `Logon` message (`35=A`), representing a session initiation request.
     Logon,
 
-    /// `Heartbeat` message (`35=0`) — confirms the session is still active.
+    /// `Heartbeat` message (`35=0`), representing a session maintenance signal.
     Heartbeat,
 
-    /// `TestRequest` message (`35=1`) — forces a heartbeat from the counterparty.
+    /// `TestRequest` message (`35=1`), representing a heartbeat request from the counterparty.
     TestRequest,
 
-    /// `ResendRequest` message (`35=2`) — requests retransmission of missed messages.
+    /// `ResendRequest` message (`35=2`), representing a retransmission of missed messages request.
     ResendRequest,
 
-    /// `Reject` message (`35=3`) — indicates a problem with a received message.
+    /// `Reject` message (`35=3`), representing a problem with a received message.
     Reject,
 
-    /// `SequenceReset` message (`35=4`) — resets expected sequence numbers or fills gaps.
+    /// `SequenceReset` message (`35=4`), represents the resetting of expected sequence numbers (or filling of gaps).
     SequenceReset,
 
-    /// `Logout` message (`35=5`) — gracefully terminates a FIX session.
+    /// `Logout` message (`35=5`), representing a session termination (grafecul) request.
     Logout,
 }
 
