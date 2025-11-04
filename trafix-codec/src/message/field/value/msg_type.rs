@@ -28,26 +28,47 @@ pub enum MsgType {
     Logout,
 }
 
-impl From<MsgType> for Vec<u8> {
-    /// Converts a [`MsgType`] variant into its FIX wire representation.
+impl From<MsgType> for &'static [u8] {
+    /// Converts a [`MsgType`] variant into its **static byte slice**
+    /// representation, corresponding to the FIX wire value of tag **35**.
     ///
-    /// Returns the single-byte ASCII code that identifies the message type,
-    /// suitable for direct use in encoding.
+    /// This conversion is zero-allocation and suitable for direct use when
+    /// encoding FIX messages.
     ///
+    /// Example usage:
     /// ```
     /// use trafix_codec::message::field::value::msg_type::MsgType;
-    /// let bytes: Vec<u8> = MsgType::Logon.into();
-    /// assert_eq!(bytes, b"A");
+    /// let bytes: &'static [u8] = (MsgType::Heartbeat).into();
+    /// assert_eq!(bytes, b"0");
     /// ```
     fn from(val: MsgType) -> Self {
         match val {
-            MsgType::Logon => b"A".to_vec(),
-            MsgType::Heartbeat => b"0".to_vec(),
-            MsgType::TestRequest => b"1".to_vec(),
-            MsgType::ResendRequest => b"2".to_vec(),
-            MsgType::Reject => b"3".to_vec(),
-            MsgType::SequenceReset => b"4".to_vec(),
-            MsgType::Logout => b"5".to_vec(),
+            MsgType::Logon => b"A",
+            MsgType::Heartbeat => b"0",
+            MsgType::TestRequest => b"1",
+            MsgType::ResendRequest => b"2",
+            MsgType::Reject => b"3",
+            MsgType::SequenceReset => b"4",
+            MsgType::Logout => b"5",
         }
+    }
+}
+
+impl From<MsgType> for Vec<u8> {
+    /// Converts a [`MsgType`] variant into an **owned `Vec<u8>`**
+    /// containing its FIX wire representation (tag **35** value).
+    ///
+    /// This form is convenient when the message type needs to be stored,
+    /// cloned, or otherwise manipulated dynamically beyond the lifetime
+    /// of a static slice.
+    ///
+    /// Example usage:
+    /// ```
+    /// use trafix_codec::message::field::value::msg_type::MsgType;
+    /// let bytes: Vec<u8> = MsgType::Logout.into();
+    /// assert_eq!(bytes, b"5");
+    /// ```
+    fn from(val: MsgType) -> Self {
+        <&[u8]>::from(val).to_vec()
     }
 }
