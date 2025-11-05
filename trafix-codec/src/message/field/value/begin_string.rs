@@ -23,7 +23,7 @@ impl From<BeginString> for &'static [u8] {
     /// Example usage:
     /// ```
     /// use trafix_codec::message::field::value::begin_string::BeginString;
-    /// let bytes: &'static [u8] = (BeginString::FIX44).into();
+    /// let bytes: &'static [u8] = BeginString::FIX44.into();
     /// assert_eq!(bytes, b"FIX.4.4");
     /// ```
     fn from(val: BeginString) -> Self {
@@ -36,9 +36,6 @@ impl From<BeginString> for &'static [u8] {
 impl From<BeginString> for Vec<u8> {
     /// Converts a [`BeginString`] variant into an **owned `Vec<u8>`**
     /// containing its byte representation.
-    ///
-    /// This is useful when the FIX version string needs to be
-    /// stored, cloned, or manipulated dynamically.
     ///
     /// Example usage:
     /// ```

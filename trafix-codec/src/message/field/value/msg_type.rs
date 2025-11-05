@@ -38,7 +38,7 @@ impl From<MsgType> for &'static [u8] {
     /// Example usage:
     /// ```
     /// use trafix_codec::message::field::value::msg_type::MsgType;
-    /// let bytes: &'static [u8] = (MsgType::Heartbeat).into();
+    /// let bytes: &'static [u8] = MsgType::Heartbeat.into();
     /// assert_eq!(bytes, b"0");
     /// ```
     fn from(val: MsgType) -> Self {
@@ -57,10 +57,6 @@ impl From<MsgType> for &'static [u8] {
 impl From<MsgType> for Vec<u8> {
     /// Converts a [`MsgType`] variant into an **owned `Vec<u8>`**
     /// containing its FIX wire representation (tag **35** value).
-    ///
-    /// This form is convenient when the message type needs to be stored,
-    /// cloned, or otherwise manipulated dynamically beyond the lifetime
-    /// of a static slice.
     ///
     /// Example usage:
     /// ```
