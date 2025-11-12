@@ -2,9 +2,14 @@
 
 pub mod field;
 
-use crate::message::field::{
-    Field,
-    value::{begin_string::BeginString, msg_type::MsgType},
+use bytes::Bytes;
+
+use crate::{
+    encoder::Encoder,
+    message::field::{
+        Field,
+        value::{begin_string::BeginString, msg_type::MsgType},
+    },
 };
 
 /// Represents the header section of a FIX message.
@@ -15,14 +20,21 @@ use crate::message::field::{
 pub struct Header {
     /// The `BeginString` identifying the FIX protocol version.
     #[allow(dead_code)]
-    begin_string: BeginString,
+    pub(crate) begin_string: BeginString,
 
     /// The `MsgType` indicating the business purpose of the message (message type).
     #[allow(dead_code)]
-    msg_type: MsgType,
+    pub(crate) msg_type: MsgType,
 
     /// Optional additional header fields.
-    fields: Vec<Field>,
+    pub(crate) fields: Vec<Field>,
+}
+
+/// Comment
+#[derive(Default)]
+pub struct Body {
+    /// Comment
+    pub(crate) fields: Vec<Field>,
 }
 
 /// Represents a complete owned, structured FIX message composed of a header and body.
@@ -33,8 +45,8 @@ pub struct Message {
     /// The message header containing version, type, and optional routing fields.
     header: Header,
 
-    /// The list of fields forming the message body (business content).
-    body: Vec<Field>,
+    /// The message body forming the message business content.
+    body: Body,
 }
 
 impl Message {
@@ -64,9 +76,15 @@ impl Message {
         MessageBuilder {
             inner: Message {
                 header,
-                body: Vec::new(),
+                body: Body::default(),
             },
         }
+    }
+
+    /// Comment
+    #[must_use]
+    pub fn encode(self) -> Bytes {
+        Encoder::default().encode(&self.header, &self.body)
     }
 }
 
@@ -96,7 +114,7 @@ impl<const IS_INIT: bool> MessageBuilder<IS_INIT> {
     /// to an initialized state, enabling [`build`](Self::build).
     #[must_use]
     pub fn with_field(mut self, field: Field) -> MessageBuilder<true> {
-        self.inner.body.push(field);
+        self.inner.body.fields.push(field);
 
         MessageBuilder { inner: self.inner }
     }
@@ -144,7 +162,7 @@ mod test {
         assert_eq!(builder.inner.header.msg_type, MsgType::Logon);
 
         // body
-        assert_eq!(builder.inner.body.len(), 0);
+        assert_eq!(builder.inner.body.fields.len(), 0);
     }
 
     #[test]
@@ -181,8 +199,8 @@ mod test {
         assert_eq!(msg.header.fields[0], custom_header_field);
 
         // body
-        assert_eq!(msg.body.len(), 2);
-        assert_eq!(msg.body[0], custom_body_field1);
-        assert_eq!(msg.body[1], custom_body_field2);
+        assert_eq!(msg.body.fields.len(), 2);
+        assert_eq!(msg.body.fields[0], custom_body_field1);
+        assert_eq!(msg.body.fields[1], custom_body_field2);
     }
 }
