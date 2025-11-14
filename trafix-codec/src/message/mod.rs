@@ -5,7 +5,7 @@ pub mod field;
 use bytes::Bytes;
 
 use crate::{
-    encoder::Encoder,
+    encoder,
     message::field::{
         Field,
         value::{begin_string::BeginString, msg_type::MsgType},
@@ -84,7 +84,7 @@ impl Message {
     /// Comment
     #[must_use]
     pub fn encode(self) -> Bytes {
-        Encoder::default().encode(&self.header, &self.body)
+        encoder::encode(&self.header, &self.body)
     }
 }
 
