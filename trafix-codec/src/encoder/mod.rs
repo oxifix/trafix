@@ -142,7 +142,6 @@ mod test {
 
     use crate::{
         encoder::encode,
-        encoder::encode_regular_fields,
         message::{
             Body, Header,
             field::{
