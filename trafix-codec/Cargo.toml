@@ -8,3 +8,5 @@ repository.workspace = true
 license.workspace = true
 
 [dependencies]
+bytes.workspace = true
+insta.workspace = true
