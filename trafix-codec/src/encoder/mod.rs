@@ -1,17 +1,20 @@
-//! Comment
+//! Implementation of the Message encoder.
 
 use bytes::{BufMut, Bytes, BytesMut};
 
 use crate::message::{Body, Header, field::Field};
 
-/// Comment
+/// Computes the running FIX checksum (tag 10) while encoding.
 #[derive(Default)]
 struct Digest {
     checksum: u8,
 }
 
 impl Digest {
-    /// Comment
+    /// Updates the running checksum using the contents of a [`BytesMut`].
+    ///
+    /// This performs modulo-256 addition across all bytes, matching the FIX
+    /// checksum algorithm.
     pub fn push(&mut self, input: &BytesMut) {
         for &b in input.as_ref() {
             self.checksum = self.checksum.wrapping_add(b);
@@ -19,10 +22,11 @@ impl Digest {
     }
 }
 
-/// Comment
+/// ASCII SOH delimiter (0x01) used as field terminator in FIX messages.
 const SOH: u8 = b'\x01';
 
-/// Comment
+/// Encodes a full FIX message (header + body + trailer) into a final wire-format `Bytes` buffer
+/// during which fields `BodyLength` and `Checksum` are calculated and set.
 pub(crate) fn encode(header: &Header, body: &Body) -> Bytes {
     // encode optional headers and the body
     let regular_fields = encode_regular_fields(header, body);
@@ -34,7 +38,8 @@ pub(crate) fn encode(header: &Header, body: &Body) -> Bytes {
     encode_checksum(message)
 }
 
-/// Comment
+/// Encodes all regular fields (`MsgType`, optional header fields, body fields)
+/// starting at tag 35 and ending before tag 10.
 #[must_use]
 fn encode_regular_fields(header: &Header, body: &Body) -> BytesMut {
     // reserving the capacity, counting that each field has AT LEAST 4 bytes b"X=Y\x01" to
@@ -78,7 +83,7 @@ fn encode_regular_fields(header: &Header, body: &Body) -> BytesMut {
     message
 }
 
-/// Comment
+/// Prepends `8=BeginString` and `9=BodyLength` fields to the message buffer produced by `encode_regular_fields`.
 #[must_use]
 fn encode_framing_headers(header: &Header, regular_fields: &BytesMut) -> BytesMut {
     // 3 * 15 (average bytes per field) (BeginString, BodyLength, Checksum)
@@ -112,7 +117,7 @@ fn encode_framing_headers(header: &Header, regular_fields: &BytesMut) -> BytesMu
     message
 }
 
-/// Comment
+/// Appends the trailer (`10=CheckSum` field) and finalizes the FIX message buffer.
 fn encode_checksum(mut message: BytesMut) -> Bytes {
     let mut digest = Digest::default();
     digest.push(&message);

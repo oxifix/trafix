@@ -30,10 +30,12 @@ pub struct Header {
     pub(crate) fields: Vec<Field>,
 }
 
-/// Comment
+/// Represents the body section of a FIX message.
+///
+/// The body always contains the fields forming the message business content.
 #[derive(Default)]
 pub struct Body {
-    /// Comment
+    /// Collection of fields forming this message body.
     pub(crate) fields: Vec<Field>,
 }
 
@@ -81,7 +83,8 @@ impl Message {
         }
     }
 
-    /// Comment
+    /// Encodes this message into a valid, final wire-format `Bytes` buffer, auto populating fields
+    /// `BodyLength` and `Checksum`.
     #[must_use]
     pub fn encode(self) -> Bytes {
         encoder::encode(&self.header, &self.body)
