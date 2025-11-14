@@ -136,39 +136,101 @@ fn encode_checksum(mut message: BytesMut) -> Bytes {
     message.freeze()
 }
 
-// #[cfg(test)]
-// mod test {
-//     use crate::{
-//         encoder::Encoder,
-//         message::{
-//             Body, Header,
-//             field::{
-//                 Field,
-//                 value::{begin_string::BeginString, msg_type::MsgType},
-//             },
-//         },
-//     };
-//
-//     #[test]
-//     fn test() {
-//         let header = Header {
-//             begin_string: BeginString::FIX44,
-//             msg_type: MsgType::Logon,
-//             fields: Vec::new(),
-//         };
-//
-//         let field = Field::Custom {
-//             tag: 144,
-//             value: Vec::from(b"value144"),
-//         };
-//
-//         let mut body = Body { fields: Vec::new() };
-//         body.fields.push(field);
-//
-//         let mut encoder = Encoder::default();
-//         encoder.encode_header(&header);
-//         encoder.encode_body(&body);
-//
-//         assert_eq!(encoder.body_length, 18);
-//     }
-// }
+#[cfg(test)]
+mod test {
+    use bytes::Bytes;
+
+    use crate::{
+        encoder::encode,
+        encoder::encode_regular_fields,
+        message::{
+            Body, Header,
+            field::{
+                Field,
+                value::{begin_string::BeginString, msg_type::MsgType},
+            },
+        },
+    };
+
+    /// Converts a bytes FIX frame to a `String`, making it human-readable by replacing the SOH
+    /// character with '|'.
+    fn humanize(encoded_message: &Bytes) -> String {
+        String::from_utf8_lossy(
+            &encoded_message
+                .as_ref()
+                .iter()
+                .map(|b| if *b == super::SOH { b'|' } else { *b })
+                .collect::<Vec<u8>>(),
+        )
+        .to_string()
+    }
+
+    #[test]
+    fn message_with_minimal_header() {
+        let header = Header {
+            begin_string: BeginString::FIX44,
+            msg_type: MsgType::Logon,
+            fields: Vec::new(),
+        };
+
+        let body = Body { fields: Vec::new() };
+
+        let encoded_message = encode(&header, &body);
+
+        insta::assert_snapshot!(humanize(&encoded_message), @"8=FIX.4.4|9=5|35=A|10=180|");
+    }
+
+    #[test]
+    fn message_with_optional_header_fields() {
+        let mut header = Header {
+            begin_string: BeginString::FIX44,
+            msg_type: MsgType::Logon,
+            fields: Vec::new(),
+        };
+
+        let body = Body { fields: Vec::new() };
+
+        // add optional header field
+        header.fields.push(Field::Custom {
+            tag: 144,
+            value: Vec::from(b"value144"),
+        });
+
+        let encoded_message = encode(&header, &body);
+
+        insta::assert_snapshot!(humanize(&encoded_message), @"8=FIX.4.4|9=18|35=A|144=value144|10=117|");
+    }
+
+    #[test]
+    fn header_with_body_fields() {
+        let mut header = Header {
+            begin_string: BeginString::FIX44,
+            msg_type: MsgType::Logon,
+            fields: Vec::new(),
+        };
+
+        let mut body = Body { fields: Vec::new() };
+
+        // add optional header field
+        header.fields.push(Field::Custom {
+            tag: 144,
+            value: Vec::from(b"value144"),
+        });
+
+        // add a body field
+        body.fields.push(Field::Custom {
+            tag: 1234,
+            value: Vec::from(b"value1234"),
+        });
+
+        // add a body field
+        body.fields.push(Field::Custom {
+            tag: 12345,
+            value: Vec::from(b"value12345"),
+        });
+
+        let encoded_message = encode(&header, &body);
+
+        insta::assert_snapshot!(humanize(&encoded_message), @"8=FIX.4.4|9=50|35=A|144=value144|1234=value1234|12345=value12345|10=185|");
+    }
+}
