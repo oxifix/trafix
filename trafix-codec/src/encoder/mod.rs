@@ -201,7 +201,7 @@ mod test {
     }
 
     #[test]
-    fn header_with_body_fields() {
+    fn message_with_header_and_body_fields() {
         let mut header = Header {
             begin_string: BeginString::FIX44,
             msg_type: MsgType::Logon,
