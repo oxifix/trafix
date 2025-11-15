@@ -2,7 +2,10 @@
 
 use bytes::{BufMut, Bytes, BytesMut};
 
-use crate::message::{Body, Header, field::Field};
+use crate::{
+    constants,
+    message::{Body, Header, field::Field},
+};
 
 /// Computes the running FIX checksum (tag 10) while encoding.
 #[derive(Default)]
@@ -21,9 +24,6 @@ impl Digest {
         }
     }
 }
-
-/// ASCII SOH delimiter (0x01) used as field terminator in FIX messages.
-const SOH: u8 = b'\x01';
 
 /// Average bytes per field in a FIX Message. We can safely assume that the average number of bytes
 /// per field is around 15 bytes as per our measurements.
@@ -58,13 +58,13 @@ fn encode_regular_fields(header: &Header, body: &Body) -> BytesMut {
         .encode()
         .as_ref(),
     );
-    message.put_u8(SOH);
+    message.put_u8(constants::SOH);
 
     // Optional header fields
     for field in &header.fields {
         // field with included SOH char.. x=ab\x01
         let mut field_soh = field.encode();
-        field_soh.push(SOH);
+        field_soh.push(constants::SOH);
 
         // encode the field into the message
         message.extend_from_slice(field_soh.as_ref());
@@ -74,7 +74,7 @@ fn encode_regular_fields(header: &Header, body: &Body) -> BytesMut {
     for field in &body.fields {
         // field with included SOH char.. x=ab\x01
         let mut field_soh = field.encode();
-        field_soh.push(SOH);
+        field_soh.push(constants::SOH);
 
         // encode the field into the message
         message.extend_from_slice(field_soh.as_ref());
@@ -98,7 +98,7 @@ fn encode_framing_headers(header: &Header, regular_fields: &BytesMut) -> BytesMu
         .encode()
         .as_ref(),
     );
-    message.put_u8(SOH);
+    message.put_u8(constants::SOH);
 
     // BodyLength with included SOH char
     message.extend_from_slice(
@@ -109,7 +109,7 @@ fn encode_framing_headers(header: &Header, regular_fields: &BytesMut) -> BytesMu
         .encode()
         .as_ref(),
     );
-    message.put_u8(SOH);
+    message.put_u8(constants::SOH);
 
     // append the all the regular fields
     message.extend_from_slice(regular_fields);
@@ -129,7 +129,7 @@ fn finalize_message(mut message: BytesMut) -> Bytes {
         value: format!("{}", digest.checksum).into_bytes(),
     }
     .encode();
-    checksum_soh.push(SOH);
+    checksum_soh.push(constants::SOH);
 
     // encode the Checksum into the message
     message.put(checksum_soh.as_ref());
@@ -142,6 +142,7 @@ mod test {
     use bytes::Bytes;
 
     use crate::{
+        constants,
         encoder::encode,
         message::{
             Body, Header,
@@ -155,7 +156,7 @@ mod test {
     /// Converts a bytes FIX frame to a `String`, making it human-readable by replacing the SOH
     /// character with '|'.
     fn humanize(encoded_message: &Bytes) -> String {
-        String::from_utf8_lossy(encoded_message).replace(super::SOH as char, "|")
+        String::from_utf8_lossy(encoded_message).replace(constants::SOH as char, "|")
     }
 
     #[test]
