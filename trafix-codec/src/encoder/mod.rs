@@ -25,17 +25,16 @@ impl Digest {
 /// ASCII SOH delimiter (0x01) used as field terminator in FIX messages.
 const SOH: u8 = b'\x01';
 
+/// Average bytes per field in a FIX Message. We can safely assume that the average number of bytes
+/// per field is around 15 bytes as per our measurements.
+const AVERAGE_BYTES_PER_FIELD: usize = 15;
+
 /// Encodes a full FIX message (header + body + trailer) into a final wire-format `Bytes` buffer
 /// during which fields `BodyLength` and `Checksum` are calculated and set.
 pub(crate) fn encode(header: &Header, body: &Body) -> Bytes {
-    // encode optional headers and the body
     let regular_fields = encode_regular_fields(header, body);
-
-    // encode 8-BeginString, 9-BodyLength fields
     let message = encode_framing_headers(header, &regular_fields);
-
-    // encode 10-Checksum field (returning frozen message)
-    encode_checksum(message)
+    finalize_message(message)
 }
 
 /// Encodes all regular fields (`MsgType`, optional header fields, body fields)
@@ -43,11 +42,12 @@ pub(crate) fn encode(header: &Header, body: &Body) -> Bytes {
 #[must_use]
 fn encode_regular_fields(header: &Header, body: &Body) -> BytesMut {
     // reserving the capacity, counting that each field has AT LEAST 4 bytes b"X=Y\x01" to
-    // reduce the number of resizings. We can safely assume that the average number of bytes
-    // per field is around 15 bytes as per our measurements.
+    // reduce the number of resizings.
     //
     // +1 represents the MsgType that's outside the fields vec
-    let mut message = BytesMut::with_capacity((header.fields.len() + body.fields.len() + 1) * 15);
+    let mut message = BytesMut::with_capacity(
+        (header.fields.len() + body.fields.len() + 1) * AVERAGE_BYTES_PER_FIELD,
+    );
 
     // MsgType with included SOH char
     message.extend_from_slice(
@@ -83,11 +83,11 @@ fn encode_regular_fields(header: &Header, body: &Body) -> BytesMut {
     message
 }
 
-/// Prepends `8=BeginString` and `9=BodyLength` fields to the message buffer produced by `encode_regular_fields`.
+/// Prepends `8=BeginString` and `9=BodyLength` fields to the provided bytes buffer.
 #[must_use]
 fn encode_framing_headers(header: &Header, regular_fields: &BytesMut) -> BytesMut {
-    // 3 * 15 (average bytes per field) (BeginString, BodyLength, Checksum)
-    let mut message = BytesMut::with_capacity(regular_fields.len() + 45);
+    // 3 * the average bytes per field representing fields: BeginString, BodyLength, Checksum
+    let mut message = BytesMut::with_capacity(regular_fields.len() + (3 * AVERAGE_BYTES_PER_FIELD));
 
     // BeginString with included SOH char
     message.extend_from_slice(
@@ -117,8 +117,9 @@ fn encode_framing_headers(header: &Header, regular_fields: &BytesMut) -> BytesMu
     message
 }
 
-/// Appends the trailer (`10=CheckSum` field) and finalizes the FIX message buffer.
-fn encode_checksum(mut message: BytesMut) -> Bytes {
+/// Appends the trailer (`10=CheckSum` field) to the provided bytes buffer and finalizes the
+/// FIX message buffer.
+fn finalize_message(mut message: BytesMut) -> Bytes {
     let mut digest = Digest::default();
     digest.push(&message);
 
@@ -154,14 +155,7 @@ mod test {
     /// Converts a bytes FIX frame to a `String`, making it human-readable by replacing the SOH
     /// character with '|'.
     fn humanize(encoded_message: &Bytes) -> String {
-        String::from_utf8_lossy(
-            &encoded_message
-                .as_ref()
-                .iter()
-                .map(|b| if *b == super::SOH { b'|' } else { *b })
-                .collect::<Vec<u8>>(),
-        )
-        .to_string()
+        String::from_utf8_lossy(encoded_message).replace(super::SOH as char, "|")
     }
 
     #[test]
