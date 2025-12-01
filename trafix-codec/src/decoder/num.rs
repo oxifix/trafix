@@ -1,16 +1,24 @@
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub(crate) enum ParseIntError {
+    /// Byte slice contained bytes that are not ASCII decimal digits.
     #[error("bytes contain values that are not decimal digits")]
     InvalidDigit,
 
+    /// Byte slice contained integer representation larger than what fits into the primitive type.
     #[error("bytes contain number out of given number literal type's bounds")]
     Overflow,
 
+    /// Byte slice is empty, which is an invalid integer.
     #[error("Unexpected empty input")]
     Empty,
 }
 
+/// Helper trait for parsing of integers from byte slices directly. Standard library exposes
+/// parsing of integers for [`str`], but not for [`&[u8]`]. That is taken care of with this
+/// extension trait.
 pub(crate) trait ParseFixInt {
+    /// Parses integer from byte slice, or returns a [`ParseIntError`] if byte slice does not
+    /// contain valid integer.
     fn parse_fix_int<T>(bytes: T) -> Result<Self, ParseIntError>
     where
         Self: Sized,

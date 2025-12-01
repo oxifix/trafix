@@ -7,7 +7,9 @@ use crate::message::field::value::begin_string::BeginString;
 use crate::message::field::value::msg_type::MsgType;
 use crate::{constants, message::Message};
 
+/// Extension trait for utility functions on [`Result`] type.
 trait ResultExt<T> {
+    /// Wraps the inner [`Result::Err`] with [`Error::BadValue`].
     fn or_bad_value(self) -> Result<T, Error>;
 }
 
@@ -23,38 +25,33 @@ where
 /// Possible errors during decoding of [`Message`]s.
 #[derive(Debug, Clone, thiserror::Error)]
 pub enum Error {
+    /// Message did not contain mandatory field.
     #[error("message is missing mandatory field '{}'", .0)]
     MissingMandatoryField(&'static str),
 
-    #[error("message contains duplicate of field '{}'", .0)]
-    DuplicateField(&'static str),
-
-    #[error("Message starts with an invalid begin string {}", String::from_utf8_lossy(.0))]
-    InvalidBeginString(Vec<u8>),
-
-    #[error("message contains invalid checksum value '{}'", String::from_utf8_lossy(.0))]
-    InvalidChecksum(Vec<u8>),
-
+    /// Message contained checksum before end.
     #[error("checksum reached but message contains more fields")]
     UnexpectedChecksum,
 
+    /// Message checksum does not match with what we calculated.
     #[error(
         "calculated and expected checksums don't match 'calculated({calculated}) != ({expected})'"
     )]
     ChecksumMismatch { calculated: u8, expected: u8 },
 
-    #[error("unexpected empty field in message")]
-    UnexpectedEmptyField,
-
+    /// Message contains invalid tag values.
     #[error("invalid tag: {}", .0)]
     BadTag(u16),
 
+    /// Message body length does not match what was received.
     #[error("expected body length {expected} but received {received} bytes")]
     BodyLength { received: usize, expected: usize },
 
+    /// Message contains invalid bytes.
     #[error("encountered error while parsing tokens: {}", .0)]
     Lexer(#[from] LexError),
 
+    /// Message contains invalid values.
     #[error("Invalid value: {}", .0)]
     BadValue(String),
 }
@@ -72,27 +69,37 @@ impl Digest {
     }
 }
 
+/// Errors that represent failures to decode symbols during lexing of FIX messages.
 #[derive(Debug, Clone, PartialEq, thiserror::Error)]
 pub enum LexError {
+    /// Found different byte than what was expected.
     #[error("Expected '{expected}' but got {but_got}")]
     Unexpected { expected: u8, but_got: u8 },
 
+    /// EOI reached but not expected.
     #[error("Unexpected end of input")]
     EOI,
 
+    /// Expected EOI but more input was found.
     #[error("Expected end of input, but got {}", .0)]
     ExpectedEOI(u8),
 
+    /// Tag contains bytes that are not ASCII decimal digits.
     #[error("Tag contains characters other than ascii 0-9 digits.")]
     MalformedTag,
 }
 
+/// Lexer reads the FIX message bytes and extracts tags and values from them.
 struct Lexer<'input> {
+    /// Byte slice containing FIX Message.
     input: &'input [u8],
+
+    /// Current position in the input byte slice.
     cursor: usize,
 }
 
 impl<'input> Lexer<'input> {
+    /// Skip expected byte if more bytes available.
     fn skip_or_eoi(&mut self, expected: u8) -> Result<Option<u8>, LexError> {
         match self.input.get(self.cursor) {
             None => Ok(None),
@@ -100,6 +107,7 @@ impl<'input> Lexer<'input> {
         }
     }
 
+    /// Skip expected byte or error on EOI.
     fn skip(&mut self, expected: u8) -> Result<Option<u8>, LexError> {
         match self.input.get(self.cursor) {
             // got a byte that does not match with expected one
@@ -123,7 +131,7 @@ impl<'input> Lexer<'input> {
     ///
     /// # Errors
     ///
-    /// Returns an error on invalid tag, or if some other symbol is encountered.
+    /// Returns an error on invalid tag, or if some other token is encountered.
     fn tag(&mut self) -> Result<u16, LexError> {
         let start = self.cursor;
 
@@ -142,6 +150,11 @@ impl<'input> Lexer<'input> {
         u16::parse_fix_int(tag_bytes).map_err(|_| LexError::MalformedTag)
     }
 
+    /// Tries to lex out the value of field in FIX Message.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error on invalid value, or if some other token is encountered.
     fn value(&mut self) -> Result<&'input [u8], LexError> {
         // INVARIANT: Cursor position right after '=' character
         let start = self.cursor;
@@ -272,7 +285,7 @@ pub fn decode(bytes: impl AsRef<[u8]>) -> Result<Message, Error> {
 }
 
 impl Message {
-    /// Decodes a [`Message`] from given bytes.
+    /// Decodes a [`Message`] from given bytes. See [`decode`] for more information.
     ///
     /// # Errors
     ///
