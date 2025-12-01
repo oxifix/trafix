@@ -4,26 +4,9 @@ use bytes::{BufMut, Bytes, BytesMut};
 
 use crate::{
     constants,
+    digest::Digest,
     message::{Body, Header, field::Field},
 };
-
-/// Computes the running FIX checksum (tag 10) while encoding.
-#[derive(Default)]
-struct Digest {
-    checksum: u8,
-}
-
-impl Digest {
-    /// Updates the running checksum using the contents of a [`BytesMut`].
-    ///
-    /// This performs modulo-256 addition across all bytes, matching the FIX
-    /// checksum algorithm.
-    pub fn push(&mut self, input: &BytesMut) {
-        for &b in input.as_ref() {
-            self.checksum = self.checksum.wrapping_add(b);
-        }
-    }
-}
 
 /// Average bytes per field in a FIX Message. We can safely assume that the average number of bytes
 /// per field is around 15 bytes as per our measurements.
@@ -126,7 +109,7 @@ fn finalize_message(mut message: BytesMut) -> Bytes {
     // Checksum with included SOH char
     let mut checksum_soh = Field::Custom {
         tag: 10,
-        value: format!("{}", digest.checksum).into_bytes(),
+        value: format!("{}", digest.checksum()).into_bytes(),
     }
     .encode();
     checksum_soh.push(constants::SOH);

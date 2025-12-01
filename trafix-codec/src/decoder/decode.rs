@@ -1,6 +1,7 @@
 //! Decoder for messages in FIX protocol.
 
 use crate::decoder::num::ParseFixInt as _;
+use crate::digest::Digest;
 use crate::message::field::Field;
 use crate::message::field::value::FromFixBytes;
 use crate::message::field::value::begin_string::BeginString;
@@ -54,19 +55,6 @@ pub enum Error {
     /// Message contains invalid values.
     #[error("Invalid value: {}", .0)]
     BadValue(String),
-}
-
-#[derive(Default)]
-struct Digest {
-    checksum: u8,
-}
-
-impl Digest {
-    fn push(&mut self, input: &[u8]) {
-        for b in input {
-            self.checksum = self.checksum.overflowing_add(*b).0;
-        }
-    }
 }
 
 /// Errors that represent failures to decode symbols during lexing of FIX messages.
@@ -262,9 +250,9 @@ pub fn decode(bytes: impl AsRef<[u8]>) -> Result<Message, Error> {
                 // cursor is right after the value of checksum, so for checksum we calculate all
                 // bytes up to cursor - number of digits in value - 1 equals sign - 2 digits (10)
                 let bytes_up_to_checksum = &bytes[..cursor_before_checksum];
-                digest.push(bytes_up_to_checksum);
+                digest.push(&bytes_up_to_checksum);
 
-                digest.checksum
+                digest.checksum()
             };
 
             let expected_checksum = u8::parse_fix_int(value).or_bad_value()?;
