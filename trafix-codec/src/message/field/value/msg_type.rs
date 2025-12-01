@@ -31,6 +31,7 @@ pub enum MsgType {
 }
 
 impl MsgType {
+    #[must_use]
     pub const fn tag() -> u16 {
         35
     }
@@ -86,7 +87,7 @@ pub enum ParseError<'input> {
 impl FromFixBytes for MsgType {
     type Error<'input> = ParseError<'input>;
 
-    fn from_fix_bytes<'bytes>(bytes: &'bytes [u8]) -> Result<Self, Self::Error<'bytes>>
+    fn from_fix_bytes(bytes: &[u8]) -> Result<Self, Self::Error<'_>>
     where
         Self: Sized,
     {

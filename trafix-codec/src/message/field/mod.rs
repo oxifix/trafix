@@ -67,6 +67,7 @@ macro_rules! fields_macro {
             /// let f = Field::MsgSeqNum(1);
             /// assert_eq!(f.tag(), 34);
             /// ```
+            #[must_use]
             pub fn tag(&self) -> u16 {
                 match self {
                     $(
@@ -82,6 +83,7 @@ macro_rules! fields_macro {
             /// For predefined fields, this returns their encoded textual
             /// representation (e.g. integer → ASCII). For custom fields, the
             /// original byte vector is cloned.
+            #[must_use]
             pub fn value(&self) -> Vec<u8> {
                 match self {
                     $(
@@ -103,6 +105,7 @@ macro_rules! fields_macro {
             /// let f = Field::MsgSeqNum(4);
             /// assert_eq!(f.encode(), b"34=4".to_vec());
             /// ```
+            #[must_use]
             pub fn encode(&self) -> Vec<u8> {
                 match self {
                     $(

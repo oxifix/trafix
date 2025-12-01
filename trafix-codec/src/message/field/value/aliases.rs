@@ -36,7 +36,7 @@ pub type TargetCompID = Vec<u8>;
 impl FromFixBytes for Vec<u8> {
     type Error<'unused> = Infallible;
 
-    fn from_fix_bytes<'bytes>(bytes: &'bytes [u8]) -> Result<Self, Self::Error<'bytes>>
+    fn from_fix_bytes(bytes: &[u8]) -> Result<Self, Self::Error<'_>>
     where
         Self: Sized,
     {
