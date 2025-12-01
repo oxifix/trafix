@@ -49,6 +49,9 @@ pub enum Error {
     #[error("invalid tag: {}", .0)]
     BadTag(u16),
 
+    #[error("expected body length {expected} but received {received} bytes")]
+    BodyLength { received: usize, expected: usize },
+
     #[error("encountered error while parsing tokens: {}", .0)]
     Lexer(#[from] LexError),
 
@@ -87,7 +90,6 @@ pub enum LexError {
 struct Lexer<'input> {
     input: &'input [u8],
     cursor: usize,
-    expected_len: usize,
 }
 
 impl<'input> Lexer<'input> {
@@ -166,7 +168,6 @@ where
         Self {
             input: value.as_ref(),
             cursor: 0,
-            expected_len: value.as_ref().len(),
         }
     }
 }
@@ -202,7 +203,8 @@ pub fn decode(bytes: impl AsRef<[u8]>) -> Result<Message, Error> {
         return Err(Error::MissingMandatoryField("body length"));
     }
 
-    let _body_length = usize::parse_fix_int(value).or_bad_value()?;
+    let body_length = usize::parse_fix_int(value).or_bad_value()?;
+    let body_start_cursor = lexer.cursor;
 
     let tag = lexer.tag()?;
 
@@ -230,11 +232,22 @@ pub fn decode(bytes: impl AsRef<[u8]>) -> Result<Message, Error> {
                 return Err(Error::UnexpectedChecksum);
             }
 
+            let cursor_before_checksum = lexer.cursor - 1 - value.len() - 1 - 2;
+
+            // at this point we can calculate the body length:
+            let received_body_length = cursor_before_checksum - body_start_cursor;
+
+            if received_body_length != body_length {
+                return Err(Error::BodyLength {
+                    received: received_body_length,
+                    expected: body_length,
+                });
+            }
+
             let calculated_checksum = {
                 let mut digest = Digest::default();
                 // cursor is right after the value of checksum, so for checksum we calculate all
                 // bytes up to cursor - number of digits in value - 1 equals sign - 2 digits (10)
-                let cursor_before_checksum = lexer.cursor - 1 - value.len() - 1 - 2;
                 let bytes_up_to_checksum = &bytes[..cursor_before_checksum];
                 digest.push(bytes_up_to_checksum);
 
@@ -287,12 +300,27 @@ mod tests {
         );
     }
 
-    // #[test]
-    // fn bad_checksum() {
-    //     let input = "8=FIX.4.4\x019=148\x0135=D\x0134=1080\x0149=TESTBUY1\x0152=20180920-18:14:19.508\x0156=TESTSELL1\x0111=636730640278898634\x0115=USD\x0121=2\x0138=7000\x0140=1\x0154=1\x0155=MSFT\x0160=20180920-18:14:19.492\x0110=000\x01";
-    //
-    //     let error = Message::decode(input).expect_err("checksum is not valid");
-    //
-    //     assert!(matches!(error, Error::ChecksumMismatch { .. }));
-    // }
+    #[test]
+    fn bad_checksum() {
+        let input = "8=FIX.4.4\x019=148\x0135=A\x0134=1080\x0149=TESTBUY1\x0152=20180920-18:14:19.508\x0156=TESTSELL1\x0111=636730640278898634\x0115=USD\x0121=2\x0138=7000\x0140=1\x0154=1\x0155=MSFT\x0160=20180920-18:14:19.492\x0110=000\x01";
+
+        let error = Message::decode(input).expect_err("checksum is not valid");
+
+        assert!(matches!(error, Error::ChecksumMismatch { .. }));
+    }
+
+    #[test]
+    fn bad_body_length() {
+        let input = "8=FIX.4.4\x019=042\x0135=A\x0134=1080\x0149=TESTBUY1\x0152=20180920-18:14:19.508\x0156=TESTSELL1\x0111=636730640278898634\x0115=USD\x0121=2\x0138=7000\x0140=1\x0154=1\x0155=MSFT\x0160=20180920-18:14:19.492\x0110=089\x01";
+
+        let error = Message::decode(input).expect_err("body length does not match");
+
+        assert!(matches!(
+            error,
+            Error::BodyLength {
+                expected: 42,
+                received: 148
+            }
+        ));
+    }
 }
