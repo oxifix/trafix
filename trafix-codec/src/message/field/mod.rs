@@ -40,6 +40,25 @@ macro_rules! fields_macro {
         }
 
         impl Field {
+            /// Tries to construct a new [`Field`] from the given tag and value.
+            ///
+            /// # Errors
+            ///
+            /// This function might return error if invalid values are passed for the given tag.
+            pub fn try_new(tag: u16, bytes: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {
+                use value::FromFixBytes;
+
+                match tag {
+                    $(
+                    $tag => Ok(Self::$variant(<$type as FromFixBytes>::from_fix_bytes(bytes)?)),
+                    )*
+                    other => Ok(Field::Custom {
+                        tag: other,
+                        value: bytes.into(),
+                    })
+                }
+            }
+
             /// Returns the numeric FIX tag associated with this field.
             ///
             /// Example usage:

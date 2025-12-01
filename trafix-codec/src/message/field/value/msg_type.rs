@@ -1,5 +1,7 @@
 //! Defines the [`MsgType`] enumeration representing the FIX **35 `MsgType`** field value.
 
+use crate::message::field::value::FromFixBytes;
+
 /// Represents the FIX message type (`35`) field value.
 ///
 /// Each variant corresponds to a well-known administrative message
@@ -26,6 +28,12 @@ pub enum MsgType {
 
     /// `Logout` message (`35=5`), representing a session termination (grafecul) request.
     Logout,
+}
+
+impl MsgType {
+    pub const fn tag() -> u16 {
+        35
+    }
 }
 
 impl From<MsgType> for &'static [u8] {
@@ -66,5 +74,31 @@ impl From<MsgType> for Vec<u8> {
     /// ```
     fn from(val: MsgType) -> Self {
         <&[u8]>::from(val).to_vec()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, thiserror::Error)]
+pub enum ParseError<'input> {
+    #[error("unsupported message type: {}", String::from_utf8_lossy(.0))]
+    Unsupported(&'input [u8]),
+}
+
+impl FromFixBytes for MsgType {
+    type Error<'input> = ParseError<'input>;
+
+    fn from_fix_bytes<'bytes>(bytes: &'bytes [u8]) -> Result<Self, Self::Error<'bytes>>
+    where
+        Self: Sized,
+    {
+        match bytes {
+            b"A" => Ok(MsgType::Logon),
+            b"0" => Ok(MsgType::Heartbeat),
+            b"1" => Ok(MsgType::TestRequest),
+            b"2" => Ok(MsgType::ResendRequest),
+            b"3" => Ok(MsgType::Reject),
+            b"4" => Ok(MsgType::SequenceReset),
+            b"5" => Ok(MsgType::Logout),
+            other => Err(ParseError::Unsupported(other)),
+        }
     }
 }
