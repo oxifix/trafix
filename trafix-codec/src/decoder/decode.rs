@@ -161,13 +161,10 @@ impl<'input> Lexer<'input> {
     }
 }
 
-impl<'slice, T> From<&'slice T> for Lexer<'slice>
-where
-    T: AsRef<[u8]>,
-{
-    fn from(value: &'slice T) -> Self {
+impl<'slice> From<&'slice [u8]> for Lexer<'slice> {
+    fn from(value: &'slice [u8]) -> Self {
         Self {
-            input: value.as_ref(),
+            input: value,
             cursor: 0,
         }
     }
@@ -186,7 +183,7 @@ where
 /// Returns an [`Error`] on malformed message formats.
 pub fn decode(bytes: impl AsRef<[u8]>) -> Result<Message, Error> {
     let bytes = bytes.as_ref();
-    let mut lexer = Lexer::from(&bytes);
+    let mut lexer = Lexer::from(bytes);
 
     let tag = lexer.tag()?;
     let value = lexer.value()?;
