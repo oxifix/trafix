@@ -5,8 +5,7 @@ pub mod field;
 use bytes::Bytes;
 
 use crate::{
-    decoder::decode,
-    encoder,
+    decoder, encoder,
     message::field::{
         Field,
         value::{begin_string::BeginString, msg_type::MsgType},
@@ -98,8 +97,8 @@ impl Message {
     /// # Errors
     ///
     /// Returns [`Error`] on invalid input.
-    pub fn decode(input: impl AsRef<[u8]>) -> Result<Self, decode::Error> {
-        decode::decode(input)
+    pub fn decode(input: impl AsRef<[u8]>) -> Result<Self, decoder::Error> {
+        decoder::decode(input)
     }
 }
 

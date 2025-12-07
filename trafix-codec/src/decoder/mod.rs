@@ -1,2 +1,4 @@
-pub mod decode;
+mod decode;
 pub mod num;
+
+pub use decode::*;
