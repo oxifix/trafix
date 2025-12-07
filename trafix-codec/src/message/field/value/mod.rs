@@ -10,7 +10,7 @@ pub mod msg_type;
 // TODO(nfejzic): this trait might be obsolete if we decide to wrap used types (i.e. newtype
 // pattern) and implement traits from std such as [`TryFrom`] instead.
 pub(crate) trait FromFixBytes {
-    /// Error returned on fail conversion.
+    /// Error returned on failed conversion.
     type Error<'lifetime>;
 
     /// Parses the input and returns an instance of self.
