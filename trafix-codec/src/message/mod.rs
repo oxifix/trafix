@@ -5,6 +5,7 @@ pub mod field;
 use bytes::Bytes;
 
 use crate::{
+    decoder::decode,
     encoder,
     message::field::{
         Field,
@@ -90,6 +91,15 @@ impl Message {
     #[must_use]
     pub fn encode(self) -> Bytes {
         encoder::encode(&self.header, &self.body)
+    }
+
+    /// Decodes a [`Message`] from given bytes. See [`decode`] for more information.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error`] on invalid input.
+    pub fn decode(input: impl AsRef<[u8]>) -> Result<Self, decode::Error> {
+        decode::decode(input)
     }
 }
 

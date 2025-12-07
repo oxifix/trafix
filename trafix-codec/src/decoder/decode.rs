@@ -269,17 +269,6 @@ pub fn decode(bytes: impl AsRef<[u8]>) -> Result<Message, Error> {
     Ok(message)
 }
 
-impl Message {
-    /// Decodes a [`Message`] from given bytes. See [`decode`] for more information.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Error`] on invalid input.
-    pub fn decode(input: impl AsRef<[u8]>) -> Result<Self, Error> {
-        decode(input)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::decoder::decode::Error;
