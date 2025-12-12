@@ -8,6 +8,15 @@ use crate::message::field::value::begin_string::BeginString;
 use crate::message::field::value::msg_type::MsgType;
 use crate::{constants, message::Message};
 
+/// Length of the SOH character.
+const SOH_LEN: usize = 1;
+
+/// Lengths of the equals ('=') character.
+const EQ_LEN: usize = 1;
+
+/// Length of the tag for checksum ('10').
+const CKSUM_TAG_LEN: usize = 2;
+
 /// Extension trait for utility functions on [`Result`] type.
 trait ResultExt<T> {
     /// Wraps the inner [`Result::Err`] with [`Error::BadValue`].
@@ -230,7 +239,8 @@ pub fn decode(bytes: impl AsRef<[u8]>) -> Result<Message, Error> {
                 return Err(Error::UnexpectedChecksum);
             }
 
-            let cursor_before_checksum = lexer.cursor - 1 - value.len() - 1 - 2;
+            let cursor_before_checksum =
+                lexer.cursor - SOH_LEN - value.len() - EQ_LEN - CKSUM_TAG_LEN;
 
             // at this point we can calculate the body length:
             let received_body_length = cursor_before_checksum - body_start_cursor;
