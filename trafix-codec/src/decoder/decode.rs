@@ -216,7 +216,7 @@ pub fn decode(bytes: impl AsRef<[u8]>) -> Result<Message, Error> {
     let tag = lexer.tag()?;
 
     if tag != MsgType::tag() {
-        return Err(Error::BadTag(tag));
+        return Err(Error::MissingMandatoryField("message type"));
     }
 
     let value = lexer.value()?;
@@ -304,6 +304,18 @@ mod tests {
         let error = Message::decode(input).expect_err("checksum is not valid");
 
         assert!(matches!(error, Error::ChecksumMismatch { .. }));
+    }
+
+    #[test]
+    fn missing_msg_type() {
+        let input = "8=FIX.4.4\x019=148\x0134=1080\x0149=TESTBUY1\x0152=20180920-18:14:19.508\x0156=TESTSELL1\x0111=636730640278898634\x0115=USD\x0121=2\x0138=7000\x0140=1\x0154=1\x0155=MSFT\x0160=20180920-18:14:19.492\x0110=114\x01";
+
+        let error = Message::decode(input).expect_err("message type is missing");
+
+        assert!(matches!(
+            error,
+            Error::MissingMandatoryField("message type")
+        ));
     }
 
     #[test]
