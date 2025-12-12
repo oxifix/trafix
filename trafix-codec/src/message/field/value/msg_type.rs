@@ -78,8 +78,10 @@ impl From<MsgType> for Vec<u8> {
     }
 }
 
+/// The error type for failed parsing of [`MsgType`]
 #[derive(Debug, Clone, PartialEq, thiserror::Error)]
 pub enum ParseError<'input> {
+    /// Provided byte slice contains data that is not a valid or supported message type.
     #[error("unsupported message type: {}", String::from_utf8_lossy(.0))]
     Unsupported(&'input [u8]),
 }
