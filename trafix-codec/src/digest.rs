@@ -1,4 +1,21 @@
-/// Computes the running FIX checksum (tag 10) while encoding.
+/// The [`Digest`] maintains a running checksum by performing modulo-256 addition over all
+/// processed bytes, exactly as defined by the FIX checksum algorithm. This is typically used while
+/// encoding and decoding FIX messages.
+///
+/// # Example
+///
+/// ```ignore
+/// let mut digest = Digest::default();
+/// digest.push(&[1, 2, 3]);
+/// let checksum = digest.checksum();
+///
+/// // (1 + 2 + 3) % 256 = 6
+/// assert_eq!(checksum, 6);
+///
+/// // (1 + 2 + 3 + 251) % 256 = 257 % 256 = 1
+/// digest.push(251);
+/// assert_eq!(checksum, 1);
+/// ```
 #[derive(Default)]
 pub(crate) struct Digest {
     checksum: u8,
@@ -15,6 +32,7 @@ impl Digest {
         }
     }
 
+    /// Returns the calculated checksum of bytes pushed so far.
     pub fn checksum(&self) -> u8 {
         self.checksum
     }
