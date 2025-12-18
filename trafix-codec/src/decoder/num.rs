@@ -1,3 +1,4 @@
+/// The error type returned on failed parsing of integers from byte slices.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub(crate) enum ParseIntError {
     /// Byte slice contained bytes that are not ASCII decimal digits.
@@ -25,6 +26,8 @@ pub(crate) trait ParseFixInt {
         T: AsRef<[u8]>;
 }
 
+/// Helper macro for implementation of parsing integers from byte slices intended for internal use
+/// only.
 macro_rules! impl_for {
     ($type:ty, $is_signed:literal) => {
         impl ParseFixInt for $type {
