@@ -75,7 +75,7 @@ pub enum LexError {
 
     /// EOI reached but not expected.
     #[error("Unexpected end of input")]
-    EOI,
+    Eoi,
 
     /// Expected EOI but more input was found.
     #[error("Expected end of input, but got {}", .0)]
@@ -120,7 +120,7 @@ impl<'input> Lexer<'input> {
             }
 
             // got EOI, but expected a byte
-            None => Err(LexError::EOI),
+            None => Err(LexError::Eoi),
         }
     }
 
@@ -142,7 +142,7 @@ impl<'input> Lexer<'input> {
         let end = self.cursor;
         self.skip(constants::EQUALS)?;
 
-        let tag_bytes = self.input.get(start..end).ok_or(LexError::EOI)?;
+        let tag_bytes = self.input.get(start..end).ok_or(LexError::Eoi)?;
 
         u16::parse_fix_int(tag_bytes).map_err(|_| LexError::MalformedTag)
     }
@@ -166,7 +166,7 @@ impl<'input> Lexer<'input> {
         let end = self.cursor;
         self.skip_or_eoi(constants::SOH)?;
 
-        self.input.get(start..end).ok_or(LexError::EOI)
+        self.input.get(start..end).ok_or(LexError::Eoi)
     }
 }
 

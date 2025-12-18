@@ -31,6 +31,7 @@ pub enum MsgType {
 }
 
 impl MsgType {
+    /// Returns the tag used for [`MsgType`].
     #[must_use]
     pub const fn tag() -> u16 {
         35

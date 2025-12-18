@@ -36,7 +36,12 @@ macro_rules! fields_macro {
             ///
             /// Useful for extension tags, firm-specific fields, or when
             /// working with non-standard message structures.
-            Custom { tag: u16, value: Vec<u8> }
+            Custom {
+                /// Tag of the custom field.
+                tag: u16,
+                /// Contents of the custom field.
+                value: Vec<u8>
+            }
         }
 
         impl Field {

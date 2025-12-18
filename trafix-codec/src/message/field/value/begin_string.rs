@@ -16,6 +16,7 @@ pub enum BeginString {
 }
 
 impl BeginString {
+    /// Returns the tag used for [`BeginString`].
     #[must_use]
     pub const fn tag() -> u16 {
         8
@@ -57,8 +58,10 @@ impl From<BeginString> for Vec<u8> {
     }
 }
 
+/// The error type for failed parsing of [`MsgType`]
 #[derive(Debug, Clone, PartialEq, thiserror::Error)]
 pub enum ParseError<'input> {
+    /// Provided byte slice contains data that is not a valid or supported FIX version.
     #[error("unsupported fix version: {}", String::from_utf8_lossy(.0))]
     Unsupported(&'input [u8]),
 }

@@ -7,7 +7,7 @@
 
 mod digest;
 
-pub mod constants;
-pub mod decoder;
+pub(crate) mod constants;
+pub(crate) mod decoder;
 pub mod encoder;
 pub mod message;
