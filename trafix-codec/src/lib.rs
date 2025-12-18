@@ -1,5 +1,6 @@
 #![warn(clippy::pedantic)]
 #![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
 #![forbid(unsafe_code)]
 
 //! `trafix-codec` is a low-level library for high-performance parsing,
@@ -9,5 +10,5 @@ mod digest;
 
 pub(crate) mod constants;
 pub(crate) mod decoder;
-pub mod encoder;
+pub(crate) mod encoder;
 pub mod message;
