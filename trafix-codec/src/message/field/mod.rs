@@ -36,10 +36,34 @@ macro_rules! fields_macro {
             ///
             /// Useful for extension tags, firm-specific fields, or when
             /// working with non-standard message structures.
-            Custom { tag: u16, value: Vec<u8> }
+            Custom {
+                /// Tag of the custom field.
+                tag: u16,
+                /// Contents of the custom field.
+                value: Vec<u8>
+            }
         }
 
         impl Field {
+            /// Tries to construct a new [`Field`] from the given tag and value.
+            ///
+            /// # Errors
+            ///
+            /// This function might return error if invalid values are passed for the given tag.
+            pub fn try_new(tag: u16, bytes: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {
+                use value::FromFixBytes;
+
+                match tag {
+                    $(
+                    $tag => Ok(Self::$variant(<$type as FromFixBytes>::from_fix_bytes(bytes)?)),
+                    )*
+                    other => Ok(Field::Custom {
+                        tag: other,
+                        value: bytes.into(),
+                    })
+                }
+            }
+
             /// Returns the numeric FIX tag associated with this field.
             ///
             /// Example usage:
@@ -48,6 +72,7 @@ macro_rules! fields_macro {
             /// let f = Field::MsgSeqNum(1);
             /// assert_eq!(f.tag(), 34);
             /// ```
+            #[must_use]
             pub fn tag(&self) -> u16 {
                 match self {
                     $(
@@ -63,6 +88,7 @@ macro_rules! fields_macro {
             /// For predefined fields, this returns their encoded textual
             /// representation (e.g. integer → ASCII). For custom fields, the
             /// original byte vector is cloned.
+            #[must_use]
             pub fn value(&self) -> Vec<u8> {
                 match self {
                     $(
@@ -84,6 +110,7 @@ macro_rules! fields_macro {
             /// let f = Field::MsgSeqNum(4);
             /// assert_eq!(f.encode(), b"34=4".to_vec());
             /// ```
+            #[must_use]
             pub fn encode(&self) -> Vec<u8> {
                 match self {
                     $(

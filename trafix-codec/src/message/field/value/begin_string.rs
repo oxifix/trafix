@@ -3,6 +3,8 @@
 
 // TODO(kfejzic): Limit visibility to crate once standards are introduced.
 
+use crate::message::field::value::FromFixBytes;
+
 /// Represents the FIX protocol version (`8`) field value.
 ///
 /// This field value determines the message format and version-specific rules
@@ -11,6 +13,14 @@
 pub enum BeginString {
     /// FIX.4.4 protocol version (`8=FIX.4.4`).
     FIX44,
+}
+
+impl BeginString {
+    /// Returns the tag used for [`BeginString`].
+    #[must_use]
+    pub const fn tag() -> u16 {
+        8
+    }
 }
 
 impl From<BeginString> for &'static [u8] {
@@ -45,5 +55,28 @@ impl From<BeginString> for Vec<u8> {
     /// ```
     fn from(val: BeginString) -> Self {
         <&[u8]>::from(val).to_vec()
+    }
+}
+
+/// The error type for failed parsing of [`MsgType`]
+#[derive(Debug, Clone, PartialEq, thiserror::Error)]
+pub enum ParseError<'input> {
+    /// Provided byte slice contains data that is not a valid or supported FIX version.
+    #[error("unsupported fix version: {}", String::from_utf8_lossy(.0))]
+    Unsupported(&'input [u8]),
+}
+
+impl FromFixBytes for BeginString {
+    type Error<'input> = ParseError<'input>;
+
+    fn from_fix_bytes(bytes: &[u8]) -> Result<Self, Self::Error<'_>>
+    where
+        Self: Sized,
+    {
+        if bytes == <&[u8]>::from(BeginString::FIX44) {
+            Ok(BeginString::FIX44)
+        } else {
+            Err(ParseError::Unsupported(bytes))
+        }
     }
 }

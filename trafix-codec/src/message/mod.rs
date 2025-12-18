@@ -5,7 +5,7 @@ pub mod field;
 use bytes::Bytes;
 
 use crate::{
-    encoder,
+    decoder, encoder,
     message::field::{
         Field,
         value::{begin_string::BeginString, msg_type::MsgType},
@@ -17,6 +17,7 @@ use crate::{
 /// The header always contains the protocol [`BeginString`] (tag 8)
 /// and the message type [`MsgType`] (tag 35), and may include
 /// additional session or routing fields.
+#[derive(Debug)]
 pub struct Header {
     /// The `BeginString` identifying the FIX protocol version.
     #[allow(dead_code)]
@@ -33,7 +34,7 @@ pub struct Header {
 /// Represents the body section of a FIX message.
 ///
 /// The body always contains the fields forming the message business content.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Body {
     /// Collection of fields forming this message body.
     pub(crate) fields: Vec<Field>,
@@ -43,6 +44,7 @@ pub struct Body {
 ///
 /// The header holds protocol and session metadata, while the body
 /// carries message-specific fields defined by the message type.
+#[derive(Debug)]
 pub struct Message {
     /// The message header containing version, type, and optional routing fields.
     header: Header,
@@ -88,6 +90,15 @@ impl Message {
     #[must_use]
     pub fn encode(self) -> Bytes {
         encoder::encode(&self.header, &self.body)
+    }
+
+    /// Decodes a [`Message`] from given bytes. See [`decode`] for more information.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error`] on invalid input.
+    pub fn decode(input: impl AsRef<[u8]>) -> Result<Self, decoder::Error> {
+        decoder::decode(input)
     }
 }
 

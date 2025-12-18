@@ -3,6 +3,10 @@
 //! These aliases provide clearer semantic meaning when working with
 //! strongly typed [`Field`](crate::message::field::Field) variants.
 
+use std::convert::Infallible;
+
+use crate::message::field::value::FromFixBytes;
+
 /// Represents the `MsgSeqNum` (`34`).
 ///
 /// This value increments with each message within a FIX session,
@@ -28,3 +32,14 @@ pub type SendingTime = Vec<u8>;
 /// Identifies the intended recipient of the FIX message.
 /// Stored as raw bytes for full fidelity with on-wire data.
 pub type TargetCompID = Vec<u8>;
+
+impl FromFixBytes for Vec<u8> {
+    type Error<'unused> = Infallible;
+
+    fn from_fix_bytes(bytes: &[u8]) -> Result<Self, Self::Error<'_>>
+    where
+        Self: Sized,
+    {
+        Ok(bytes.into())
+    }
+}
