@@ -1,4 +1,6 @@
-//! Implementation of the Message encoder.
+//! Implementation of the [`Message`] encoder.
+//!
+//! [`Message`]: crate::message::Message
 
 use bytes::{BufMut, Bytes, BytesMut};
 
