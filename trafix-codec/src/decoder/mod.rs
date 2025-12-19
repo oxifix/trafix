@@ -1,5 +1,6 @@
-//! Implementation of the Message decoder.
-
+//! Implementation of the [`Message`] decoder.
+//!
+//! [`Message`]: crate::message::Message
 mod decode;
 pub mod num;
 
