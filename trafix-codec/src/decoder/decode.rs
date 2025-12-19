@@ -51,7 +51,7 @@ pub enum Error {
         /// Checksum calculated from the message.
         calculated: u8,
 
-        /// Expected checksum as per the FIX protocols defined algorithm.
+        /// Expected checksum that was extracted from the FIX message.
         expected: u8,
     },
 
