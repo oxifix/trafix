@@ -47,7 +47,13 @@ pub enum Error {
     #[error(
         "calculated and expected checksums don't match 'calculated({calculated}) != ({expected})'"
     )]
-    ChecksumMismatch { calculated: u8, expected: u8 },
+    ChecksumMismatch {
+        /// Checksum calculated from the message.
+        calculated: u8,
+
+        /// Expected checksum that was extracted from the FIX message.
+        expected: u8,
+    },
 
     /// Message contains invalid tag values.
     #[error("invalid tag: {}", .0)]
@@ -55,7 +61,13 @@ pub enum Error {
 
     /// Message body length does not match what was received.
     #[error("expected body length {expected} but received {received} bytes")]
-    BodyLength { received: usize, expected: usize },
+    BodyLength {
+        /// `BodyLength` received in the message.
+        received: usize,
+
+        /// Expected `BodyLength` as per the FIX protocols defined algorithm.
+        expected: usize,
+    },
 
     /// Message contains invalid bytes.
     #[error("encountered error while parsing tokens: {}", .0)]
@@ -71,7 +83,13 @@ pub enum Error {
 pub enum LexError {
     /// Found different byte than what was expected.
     #[error("Expected '{expected}' but got {but_got}")]
-    Unexpected { expected: u8, but_got: u8 },
+    Unexpected {
+        /// Byte value that was expected at the current lexer position.
+        expected: u8,
+
+        /// Byte value that was encountered instead of the expected one.
+        but_got: u8,
+    },
 
     /// EOI reached but not expected.
     #[error("Unexpected end of input")]

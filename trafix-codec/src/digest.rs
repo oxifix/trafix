@@ -1,3 +1,5 @@
+//! Implementation of a lightweight, stateful FIX checksum (Digest) calculator.
+
 /// The [`Digest`] maintains a running checksum by performing modulo-256 addition over all
 /// processed bytes, exactly as defined by the FIX checksum algorithm. This is typically used while
 /// encoding and decoding FIX messages.
@@ -18,6 +20,8 @@
 /// ```
 #[derive(Default)]
 pub(crate) struct Digest {
+    /// Accumulated checksum value computed as the modulo-256 sum of all bytes
+    /// processed, per the FIX protocol checksum definition.
     checksum: u8,
 }
 

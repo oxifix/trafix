@@ -1,3 +1,5 @@
+//! Integer parsing utilities for FIX decoding.
+
 /// The error type returned on failed parsing of integers from byte slices.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub(crate) enum ParseIntError {
