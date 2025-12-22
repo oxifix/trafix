@@ -29,17 +29,6 @@ This project is organized as a multirepo, consisting of multiple underlying crat
 
 ---
 
-### Getting Started
-
-Add `trafix-codec` to your `Cargo.toml`:
-
-```toml
-[dependencies]
-trafix-codec = "0.1.0"
-```
-
----
-
 ### Example: full usage
 
 ```rust
@@ -75,9 +64,9 @@ fn main() {
 
     // build the message after adding the needed fields.
     let message = builder
-        .with_header(custom_header_field.clone())
-        .with_field(custom_body_field1.clone())
-        .with_field(custom_body_field2.clone())
+        .with_header(custom_header_field)
+        .with_field(custom_body_field1)
+        .with_field(custom_body_field2)
         .build();
 
     // encode the message into bytes
