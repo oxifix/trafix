@@ -1,10 +1,10 @@
 # Project Structure
 
-This project is organized as a multirepo, consisting of three separate crates:
+This project is organized as a multirepo, consisting of multiple underlying crates, some of which are:
 
-3. **trafix** — an umbrella crate wrapping the 2 below.
-1. **trafix-codec** — a low-level library for high-performance parsing, encoding, and validation of FIX messages.  
-2. **trafix-engine** — a full-featured FIX engine with session management, transports, and persistence built on top of `trafix-codec`.
+- **trafix** — an umbrella crate wrapping the 2 below.
+- **trafix-codec** — a low-level library for high-performance parsing, encoding, and validation of FIX messages.  
+- **trafix-engine** — a full-featured FIX engine with session management, transports, and persistence built on top of `trafix-codec`.
 
 ## trafix-codec
 
@@ -12,20 +12,20 @@ This project is organized as a multirepo, consisting of three separate crates:
 
 ### Key Features
 
-- **Message creation**: Version-agnostic FIX message creation using a safe builder.
-  - Generic builder for constructing Message instances.
-  - Allowing of custom fields addition.
-  - Forbidding of message building until all the required fields are provided.
+- **Message creation**: Version-agnostic FIX message creation using a type-safe builder.
+  - Type-safe builder for `Message`.
+  - Allows custom fields.
+  - Prevents construction of invalid `Message`s.
 
-- **Message decoding**: Version-agnostic FIX message decoding with a focus on correctness and performance.
+- **Message decoding**: Version-agnostic FIX message decoding with a focus on correctness.
   - SOH-based frame parsing (`tag=value\x01`)
   - Support for FIX session-level messages
-  - Validation of `BeginString (8)`, `BodyLength (9)`, and `CheckSum (10)`
+  - Support for message validation
 
 - **Message encoding**: Deterministic FIX message serialization with automatic framing.
   - Correct handling of `BeginString (8)`, `BodyLength (9)`, and `CheckSum (10)`
   - Supports arbitrary field order while enforcing FIX wire rules
-  - Efficient buffer-based encoding (`Bytes` / `BytesMut`)
+  - Efficient buffer-based encoding using (`Bytes` / `BytesMut`)
 
 ---
 
@@ -84,7 +84,7 @@ fn main() {
     let encoded_message = message.encode();
     println!("{:?}", encoded_message);
 
-    // decoding example; decoing and encoding a message results in the same bytes output.
+    // decoding example; decoding and encoding a message results in the same bytes output.
 
     // Raw FIX message
     let input = "8=FIX.4.4\x019=148\x0135=A\x0134=1080\x0149=TESTBUY1\x0152=20180920-18:14:19.508\x0156=TESTSELL1\x0111=636730640278898634\x0115=USD\x0121=2\x0138=7000\x0140=1\x0154=1\x0155=MSFT\x0160=20180920-18:14:19.492\x0110=089\x01";
